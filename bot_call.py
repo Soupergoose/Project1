@@ -37,11 +37,11 @@ Base_Currencies = ('USDT', 'BTC')
 
 Go = True
 while Go == True:
-    #Get Current Balances
+    #Get Current Balances ***Matrix***
     balances = bitbot.Get_Balances(Current_Holdings, Base_Currencies)
     XRP_Balance = float(balances['XRP'])
     
-    #Get Current Prices
+    #Get Current Price Matrix
     price_matrix = bitbot.Get_Current_Price_Matrix(Base_Currencies, Current_Holdings)
     XRP_USDT = float(price_matrix[Current_Holdings.index('XRP'), Base_Currencies.index('USDT')])
     print(XRP_USDT)  
@@ -66,16 +66,43 @@ while Go == True:
             Potential_XRP_USDT_buy = False
             
     #Determine profitability
-    if Potential_XRP_USDT_sell == True:
+    if Potential_XRP_USDT_sell == True and XRP_Balance > 0:
         profit = (XRP_USDT*(1 + fee) - XRP_lastbuy)
         if profit > 0:
             SELL_XRP_USDT = True
             XRP_USDT_Sell_Amount = (profit/XRP_lastbuy)*XRP_Balance
             
+    elif Potential_XRP_USDT_buy == True and USDT_Balance > 0:
+        profit = (XRP_USDT*(1 + fee) - XRP_lastsale)
+        if profit > 0: 
+            BUY_XRP_USDT = True
+            XRP_USDT_Buy_Amount = (profit/XRP_lastsale)*USDT_Balance
         
     
-        #log all variables
+ ###########################################################       
+def Average_Transaction(kind, currency_pair, Days):
+    temp = polo.returnTradeHistory(currency_pair, Days)
+    denominatorsum = 0
+    numeratorsum = 0
+    
+    for i in range(len(temp)):
+        Kind = temp[i]['type']
         
+        if kind == Kind:
+            denominatorsum += float(temp[i]['amount'])
+            numeratorsum += float(temp[i]['amount']) * float(temp[i]['rate'])
+            
+    #Weighted average
+    return numeratorsum/denominatorsum
+   
+  ################################################      
+    
+def Average_Price(history, currency, base):
+    for i in range(len(history)):
+        historical_price = history[i][currency]
+        historical_quantity = history[i][
+  #################################################          
+        #Log all variables
         #Sleep
     time.sleep(180)
         #repeat
