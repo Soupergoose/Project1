@@ -47,12 +47,30 @@ while Go == True:
     print(XRP_USDT)  
     
     #Analyze Open Orders
+    
+    
+    #Cancel Open Orders If Necessary.
+    polo.cancelOrder('ordernumber')
       
     #Recall previous purchase prices
     History = polo.returnTradeHistory('USDT_XRP', Days)
-    XRP_lastbuy = 0.77
-    XRP_lastsale = 0.86
-    
+    (XRP_last_buy, XRP_lastsale) = Last_Prices(History)
+ ##############################
+    def Last_Prices(History):
+        buy = 0
+        sale = 0
+        counter = 0
+        while buy == 0 or sell == 0:
+            temp = History[counter]['type']
+            if temp == 'buy' and buy == 0:
+                XRP_lastbuy = float(History[counter]['rate'])
+                buy = 1
+            elif temp == 'sell' and sale == 0:
+                XRP_lastsale = float(History[counter]['rate'])
+                sale = 1
+            else: counter += 1
+        return XRP_lastbuy, XRP_lastsale
+ #########################################   
     #Trade Eligible? Y/N
     if XRP_USDT_current > XRP_lastbuy * (1 + threshold):
             Potential_XRP_USDT_sell = True
@@ -79,8 +97,9 @@ while Go == True:
             XRP_USDT_Buy_Amount = (profit/XRP_lastsale)*USDT_Balance
         
     
- ###########################################################       
-def Average_Transaction(kind, currency_pair, Days):
+ ###########################################################   
+# Average_Transaction calculates both average and weighted average of previous purchases/sales.
+def Average_Transaction(kind, currency_pair, Days, Weighted):
     temp = polo.returnTradeHistory(currency_pair, Days)
     denominatorsum = 0
     numeratorsum = 0
@@ -89,20 +108,29 @@ def Average_Transaction(kind, currency_pair, Days):
         Kind = temp[i]['type']
         
         if kind == Kind:
-            denominatorsum += float(temp[i]['amount'])
-            numeratorsum += float(temp[i]['amount']) * float(temp[i]['rate'])
-            
+            Temp = float(temp[i]['amount'])
+            denominatorsum += Temp
+        if Weighted == 1:
+            numeratorsum += Temp * float(temp[i]['rate'])
+        if Weighted == 0: 
+            numeratorsum += Temp
     #Weighted average
     return numeratorsum/denominatorsum
    
-  ################################################      
-    
-def Average_Price(history, currency, base):
-    for i in range(len(history)):
-        historical_price = history[i][currency]
-        historical_quantity = history[i][
+
   #################################################          
         #Log all variables
+         
+        #Make Trades
+        if BUY_XRP_USDT == True:
+            #Returns order number and info that should be logged.
+            log(polo.buy('currency_pair', 'rate', 'amount'))
+            
+        elif SELL_XRP_USDT == True:
+            log(polo.sell('currency_pair', 'rate', 'amount'))
+        
+        else: log('No Trade')
+  
         #Sleep
     time.sleep(180)
         #repeat
